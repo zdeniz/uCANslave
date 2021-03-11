@@ -10,17 +10,11 @@
 #include "const.h"
 #include "data.h"
 #include "timers.h"
-#include "init252.h"
+#include "PIC18F252/initchip.h"
 #include "states.h"
-#include "uUART.h"
+#include "ucan.h"
 #include "nmt.h"
-
-
-enum {
-    eCAN_NODE, //nodeID
-    eCAN_SPEED //CAN speed
-};
-__EEPROM_DATA(CAN_NODE, CAN_SPEED, 2, 3, 4, 5, 6, 7);
+#include "epprom.h"
 
 UNS8 nodeID;
 unsigned char digital_input[1] = {0};
@@ -32,41 +26,6 @@ MESSAGE uMessage;
 // CANOPEN_NODE_MASTER_DATA
 CO_Data uData;
 
-unsigned char eeprom18_read(unsigned char offset) {
-    unsigned char eecon = EECON1;
-    EEADR = offset;
-
-    EECON1bits.EEPGD = 0; //accesses data EEPROM memory
-    EECON1bits.CFGS = 0; //accesses data EEPROM memory
-    EECON1bits.RD = 1; //initiates an EEPROM read
-
-    Nop(); //it can be read after one NOP instruction
-    EECON1 = eecon; // Restore EECON1
-
-    return EEDATA;
-}
-
-void eeprom18_write(unsigned char offset, unsigned char value) {
-    unsigned char eecon = EECON1; //Saved EECON1
-
-    EEDATA = value;
-    EEADR = offset;
-
-    EECON1bits.EEPGD = 0; //accesses data EEPROM memory
-    EECON1bits.CFGS = 0; //accesses data EEPROM memory
-    EECON1bits.WREN = 1; //allows write cycles
-
-    di(); //interrupts be disabled during this code segment
-    EECON2 = 0x55; //write sequence unlock
-    EECON2 = 0xAA; //write sequence unlock
-    EECON1bits.WR = 1; //initiates a data EEPROM erase/write cycle
-    while (EECON1bits.WR); //waits for write cycle to complete
-    ei(); //restore interrupts
-
-    EECON1bits.WREN = 0; //disable write
-    EECON1 = eecon; // Restore EECON1
-}
-
 UNS8 getID(void) {
     UNS8 node = eeprom18_read(eCAN_NODE);
     return node;
@@ -74,36 +33,38 @@ UNS8 getID(void) {
 
 //extern const UNS16 objDictSize;
 
-void openInit(void) {
+void initCANOPEN(void) {
     extern UNS16 obj1017;
-    obj1017 = 3;
+    obj1017 = 1000;
     uData.nodeId = 0xFF;
     uData.nodeState = Unknown_state;
     uData.canFlags.iam_a_slave = 1;
+    uData.canFlags.iam_autostart = 1;
     //    uData.ObjdictSize = &objDictSize;
 };
+UNS8 sendHeartBeat(void);
 
 void main(void) {
     NOP();
 
     NOP();
-/*
-    uMessage.node = 127;
-    uMessage.cmd = 15;
-    uMessage.rtr = 1;
-    uMessage.len = 3;
-    uMessage.mdata[0] = 3;
-    uMessage.mdata[1] = 2;
-    uMessage.mdata[2] = 1;
-        loadEngine();
-    canSend(&uMessage);
- */
+    /*
+        uMessage.node = 127;
+        uMessage.cmd = 15;
+        uMessage.rtr = 1;
+        uMessage.len = 3;
+        uMessage.mdata[0] = 3;
+        uMessage.mdata[1] = 2;
+        uMessage.mdata[2] = 1;
+            loadEngine();
+        canSend(&uMessage);
+     */
     initChip(); // Initialize pic configuration    
-    openInit(); // Initialize CANOPEN stack
-    nodeID = getID(); // Read node ID from switch
+    initCANOPEN(); // Initialize CANOPEN stack
+    nodeID = getID(); // Read node ID from EEPROM
     setNodeId(nodeID); //  Set and configuration default SDO PDO EMCY
-    //// Start timer & UART for the CANopen stack
     initCAN(eeprom18_read(eCAN_SPEED)); // Initialize the CANopen driver
+    // Start timer & UART for the CANopen stack
     initINT(); //Enable communication & timers
 
     setState(Initialisation); // Initialisation and set Pre_operational
@@ -113,7 +74,7 @@ void main(void) {
         if (uData.canFlags.sysTickFlag) // Cycle timer, invoke action on every time slice
         {
             uData.canFlags.sysTickFlag = 0; // Reset timer
-
+            //            sendHeartBeat();
             TimeDispatch();
             NOP();
             NOP();

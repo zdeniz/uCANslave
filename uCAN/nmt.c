@@ -3,23 +3,19 @@
 #include "const.h"
 #include "data.h"
 #include "states.h"
-#include "uUART.h"
+#include "ucan.h"
 
 extern MESSAGE uMessage;
 extern CO_Data uData;
-
+void ledNMT(void);
 void proceedNMTstateChange(void) {
     if (uData.nodeState == Pre_operational ||
             uData.nodeState == Operational ||
             uData.nodeState == Stopped) {
 
-        //    MSG_WAR(0x3400, "NMT received. for node :  ", (*m).data[1]);
-
-        /* Check if this NMT-message is for this node */
+       /* Check if this NMT-message is for this node */
         /* byte 1 = 0 : all the nodes are concerned (broadcast) */
-
         if ((uMessage.mdata[1] == 0) || (uMessage.mdata[1] == uData.nodeId)) {
-
             switch (uMessage.mdata[0]) { /* command specifier (cs) */
                 case NMT_Start_Node:
                     if ((uData.nodeState == Pre_operational) || (uData.nodeState == Stopped))
@@ -30,6 +26,7 @@ void proceedNMTstateChange(void) {
                     if (uData.nodeState == Pre_operational ||
                             uData.nodeState == Operational)
                         setState(Stopped);
+                                 ledNMT();  
                     break;
 
                 case NMT_Enter_PreOperational:
@@ -59,7 +56,7 @@ void proceedNMTstateChange(void) {
         bDeviceNodeId ) ) */
     }
 }
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 UNS8 sendBootUp(void) {
     NOP();
@@ -72,16 +69,16 @@ UNS8 sendBootUp(void) {
     uMessage.mdata[0] = 0;
     return canSend(&uMessage);
 }
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 void NMT_Slave_Node_Reset_Callback(void) {
 };
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 void NMT_Slave_Communications_Reset_Callback(void) {
-    //    resetProcessImg();      //????????????? ?????????? ?????????
-    //    initEngineCAN();         //????????????? ?????????? ???? CAN
+    //    resetProcessImg();
+    //    initEngineCAN();
 
     //    initTPDO();
     //    initRPDO();

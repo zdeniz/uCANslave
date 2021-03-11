@@ -3,12 +3,8 @@
  *Функции нициализации МК
  */
 #include <xc.h> 
-#include "init252.h"
-
-//                                 250, 125, 76.8, 38.4, 19.2, 9.6 | 4.8   2.4 
-const unsigned char speedConst[8] = {3, 7, 12, 24, 51, 103, 206, 103};
-const unsigned char divConst[8] = {1, 2, 4, 8, 12, 24, 48, 96};
-
+#include "initchip.h"
+#include "../epprom.h"
 //------------------------------------------------------------------------------
 /**
  * \file
@@ -44,7 +40,7 @@ void initPORTA(void) {
 void initPORTB(void) {
     //init_PORTB
     PORTB = 0x00;
-    TRISB = 0; //all pins out
+    TRISB = 1; //all pins out, 0-in
     LATB = 0; //all pins set 0
 }
 
@@ -58,35 +54,28 @@ void initPORTC(void) {
 //----------------------------------------------------------------------
 
 /**
- * Установить скорость uCAN и множитель GAP
- * 250, 125, 76.8, 38.4, 19.2, 9.6 | 4.8   2.4 
- * @param num - номер параметра скорости
- */
-inline void setSpeed(unsigned char num) {
-    if (num < 6) TXSTAbits.BRGH = 1; //высокоскоростной BRGH
-    else TXSTAbits.BRGH = 0; //низкоскоростной BRGH
-    SPBRG = speedConst[num]; //RES_LO; -младший байт скорости
-}
-//----------------------------------------------------------------------
-
-/**
  * Инициализация UART
  */
-void initUART(void) {
+
+unsigned char eeprom18_read(unsigned char offset);
+
+void initUART(unsigned char num) {
     //   ANSELHbits.ANS11 = 0;
+
     TRISBbits.RB6 = 0; //TxD 
     TRISBbits.RB7 = 1; //RxD
     //SYNC=0 BRGH=1 BRG16=1   ->  Fosc/4*[N+1]    
     //   BAUDCON = 0;
     //   BAUDCONbits.BRG16 = 1; //BRG16 16-битный генератор скорости
-    setSpeed(0);
+    //    setSpeed(0);
     TXSTA = 0;
-    TXSTAbits.SYNC = 0; //TX Асинхронный режим SYNC
-    //    TXSTAbits.BRGH = 1; //высокоскоростной BRGH
-    TXSTAbits.TXEN = 1; //TX Включить TX передачу
     RCSTA = 0;
-    RCSTAbits.SPEN = 1; //SPEN Включить УАРТ   
+    TXSTAbits.TXEN = 1; //TX Включить TX передачу
     RCSTAbits.CREN = 1; //CREN Включить RX прием
+    TXSTAbits.SYNC = 0; //TX Асинхронный режим SYNC
+    TXSTAbits.BRGH = 1; //высокоскоростной BRGH
+    SPBRG = eeprom18_read(eTAB_SPEED + num);
+    RCSTAbits.SPEN = 1; //SPEN Включить УАРТ 
     //Устанавливаем приориет прерывания
     IPR1bits.RCIP = 1; //HI priority RxD
 }
@@ -107,6 +96,7 @@ void initTMR0(void) {
 
 void initWDT(void) {
     //init_WDT
+
     WDTCON = 0b00010010; //512ms
     //        WDTCONbits.SWDTEN=1;
 }
@@ -117,14 +107,16 @@ void initINT(void) {
     INTCONbits.TMR0IE = 1;
     //Разрешаем прерывание от Таймера 1
     PIE1bits.TMR1IE = 0;
-    INTCONbits.INT0E = 0; //Разрешаем прерывание от INT0
 
-    //    INTCONbits.PEIE = 1; //Разрешаем прерывания от переферии
+    //Разрешаем прерывание от INT0
+    INTCON2bits.INTEDG0 = 0; //прерывание по падающему фронту
+    INTCONbits.INT0IF = 0;
+    INTCONbits.INT0IE = 0; //Разрешаем прерывание от INT0
+
+    PIE1bits.RCIE = 1; //Разрешение прерывание от приемника УАРТ
+
     RCONbits.IPEN = 1; //разрешаем приоритет прерываний
-
- //   PIE1bits.RCIE = 1; //Разрешение прерывание от приемника УАРТ
-
-
+//    INTCONbits.PEIE = 1; //Разрешаем прерывания от переферии
     INTCONbits.GIEH = 1; //разрешаетвысокоприоритетные прерывания
-//    INTCONbits.GIEL = 0; //разрешает низкоприоретееные прерывания    
+    //    INTCONbits.GIEL = 0; //разрешает низкоприоретееные прерывания    
 }

@@ -9,7 +9,7 @@
 #include "emcy.h"
 #include "sdo.h"
 #include "pdo.h"
-#include "uUART.h"
+#include "ucan.h"
 #include "nmt.h"
 #include "leds.h"
 
@@ -21,7 +21,7 @@ void proceedNODE_GUARD(void);
 extern CO_Data uData;
 extern UNS32 obj1014;
 extern MESSAGE uMessage;
-
+void ledNMT(void);
 void canDispatch(void) {
     switch (uMessage.cmd) {
         case _SYNC: /* can be a SYNC or a EMCY message */
@@ -99,7 +99,7 @@ void switchCommunicationState(s_state_communication newCommunicationState) {
     if (newCommunicationState.csPDO && uData.CurrentCommunicationState.csPDO == 0) {
         uData.CurrentCommunicationState.csPDO = 1;
         PDOInit();\
-	                                                                                                                                            } else if (!newCommunicationState.csPDO && uData.CurrentCommunicationState.csPDO == 1) {
+	                                                                                                                                                } else if (!newCommunicationState.csPDO && uData.CurrentCommunicationState.csPDO == 1) {
         uData.CurrentCommunicationState.csPDO = 0;
         PDOStop();
     }
@@ -118,7 +118,6 @@ void switchCommunicationState(s_state_communication newCommunicationState) {
 UNS8 setState(e_nodeState newState) {
     s_state_communication newCommunicationState;
     if (newState != uData.nodeState) {
-        stateLED(newState);
         switch (newState) {
             case Initialisation:
             {
@@ -199,9 +198,9 @@ void setNodeId(UNS8 nodeId) {
     UNS8 ptrIndex = firstIndex.SDO_SVR;
     if (ptrIndex) {
         /* Adjust COB-ID Client->Server (rx) only id already set to default value or id not valid (id==0xFF)*/
-        *(UNS32*)objdict[ptrIndex].pSubindex[1].pObject = (UNS32) (0x600 + nodeId);
+        *(UNS32*) objdict[ptrIndex].pSubindex[1].pObject = (UNS32) (0x600 + nodeId);
         /* Adjust COB-ID Server -> Client (tx) only id already set to default value or id not valid (id==0xFF)*/
-        *(UNS32*)objdict[ptrIndex].pSubindex[1].pObject = (UNS32) (0x580 + nodeId);
+        *(UNS32*) objdict[ptrIndex].pSubindex[1].pObject = (UNS32) (0x580 + nodeId);
     }
 
     {
@@ -211,7 +210,7 @@ void setNodeId(UNS8 nodeId) {
         const UNS16 cobID[] = {0x200, 0x300, 0x400, 0x500};
         if (ptrIndex) {
             while ((ptrIndex <= ptrLast) && (i < 4)) {
-                *(UNS32*)objdict[ptrIndex].pSubindex[1].pObject = (UNS32) (cobID[i] + nodeId);
+                *(UNS32*) objdict[ptrIndex].pSubindex[1].pObject = (UNS32) (cobID[i] + nodeId);
                 i++;
                 ptrIndex++;
             }
@@ -225,7 +224,7 @@ void setNodeId(UNS8 nodeId) {
         const UNS16 cobID[] = {0x180, 0x280, 0x380, 0x480};
         if (ptrIndex) {
             while ((ptrIndex <= ptrLast) && (i < 4)) {
-                *(UNS32*)objdict[ptrIndex].pSubindex[1].pObject = (UNS32) (cobID[i] + nodeId);
+                *(UNS32*) objdict[ptrIndex].pSubindex[1].pObject = (UNS32) (cobID[i] + nodeId);
                 i++;
                 ptrIndex++;
             }
@@ -244,6 +243,7 @@ void setNodeId(UNS8 nodeId) {
 //------------------------------------------------------------------------------
 
 void initialisation(void) {
+    stateLED(Initialisation);
 }
 //------------------------------------------------------------------------------
 
@@ -251,14 +251,15 @@ void preOperational(void) {
     if (!(uData.canFlags.iam_a_slave)) {
         //       masterSendNMTstateChange(d, 0, NMT_Reset_Node);
     }
-
+    stateLED(Pre_operational);
 }
 //------------------------------------------------------------------------------
 
 void operational(void) {
+    stateLED(Operational);
 }
 //------------------------------------------------------------------------------
 
 void stopped(void) {
-
+    stateLED(Stopped);
 }

@@ -10,7 +10,7 @@
 #define _OK     0
 
 /*   GENERAL   */
-#define CAN_SPEED 1
+#define CAN_SPEED 2
 #define CAN_NODE 0x0F
 
 
@@ -67,7 +67,7 @@
 #define _PDO4rx     0xA
 #define _SDOtx      0xB
 #define _SDOrx      0xC
-#define _HEARTBEAT  0xE
+#define _HEARTBEAT  0xE         //0xE
 //#define _LSS 	   0xF
 
 /* NMT Command Specifier, sent by master to change a slave state */
