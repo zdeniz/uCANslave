@@ -8,7 +8,7 @@
 //------------------------------------------------------------------------------
 /**
  * \file
- * \brief Инициализация регистров  конфигурация портов PIC
+ * \brief Initialization of registers PIC port configuration
  */
 //------------------------------------------------------------------------------
 
@@ -66,17 +66,17 @@ void initUART(unsigned char num) {
     TRISBbits.RB7 = 1; //RxD
     //SYNC=0 BRGH=1 BRG16=1   ->  Fosc/4*[N+1]    
     //   BAUDCON = 0;
-    //   BAUDCONbits.BRG16 = 1; //BRG16 16-битный генератор скорости
+    //   BAUDCONbits.BRG16 = 1; // BRG16 16 bit rate generator
     //    setSpeed(0);
     TXSTA = 0;
     RCSTA = 0;
-    TXSTAbits.TXEN = 1; //TX Включить TX передачу
-    RCSTAbits.CREN = 1; //CREN Включить RX прием
-    TXSTAbits.SYNC = 0; //TX Асинхронный режим SYNC
-    TXSTAbits.BRGH = 1; //высокоскоростной BRGH
+    TXSTAbits.TXEN = 1; // TX Enable TX transmission
+    RCSTAbits.CREN = 1; // CREN Enable RX receive
+    TXSTAbits.SYNC = 0; // TX Asynchronous SYNC mode
+    TXSTAbits.BRGH = 1; // high speed BRGH
     SPBRG = eeprom18_read(eTAB_SPEED + num);
-    RCSTAbits.SPEN = 1; //SPEN Включить УАРТ 
-    //Устанавливаем приориет прерывания
+    RCSTAbits.SPEN = 1; // SPEN Enable UART
+    // Setting the interrupt priority
     IPR1bits.RCIP = 1; //HI priority RxD
 }
 //----------------------------------------------------------------------
@@ -87,9 +87,9 @@ void initTMR0(void) {
     TMR0H = 0xFF;
     TMR0L = 0xA8;
     T0CON = 0b10000000;
-    //Прескалер 1:4, тактирование Fosc/4,
-    //один тик 1000000/256 = 0,064мкс (us)
-    //Устанавливаем приориет прерывания   
+    // Prescaler 1: 4, clocking Fosc / 4,
+    // one tick 1000000/256 = 0.064μs (us)
+    // Set the priority of the interrupt
     INTCON2bits.TMR0IP = 1; //HI priority
 }
 //------------------------------------------------------------------------------
@@ -102,21 +102,21 @@ void initWDT(void) {
 }
 
 void initINT(void) {
-    //Разрешаем прерывание от Таймера 0
+    // Enable Timer 0 Interrupt
     INTCONbits.TMR0IF = 0;
     INTCONbits.TMR0IE = 1;
-    //Разрешаем прерывание от Таймера 1
+    // Enable Timer 1 Interrupt
     PIE1bits.TMR1IE = 0;
 
-    //Разрешаем прерывание от INT0
-    INTCON2bits.INTEDG0 = 0; //прерывание по падающему фронту
+    // Enable interrupt from INT0
+    INTCON2bits.INTEDG0 = 0; // interrupt on falling edge
     INTCONbits.INT0IF = 0;
-    INTCONbits.INT0IE = 0; //Разрешаем прерывание от INT0
+    INTCONbits.INT0IE = 0; // Enable interrupt from INT0
 
-    PIE1bits.RCIE = 1; //Разрешение прерывание от приемника УАРТ
+    PIE1bits.RCIE = 1; // Enable interrupt from UART receiver
 
-    RCONbits.IPEN = 1; //разрешаем приоритет прерываний
-//    INTCONbits.PEIE = 1; //Разрешаем прерывания от переферии
-    INTCONbits.GIEH = 1; //разрешаетвысокоприоритетные прерывания
-    //    INTCONbits.GIEL = 0; //разрешает низкоприоретееные прерывания    
+    RCONbits.IPEN = 1; // enable interrupt priority
+//    INTCONbits.PEIE = 1; // Enable peripheral interrupts
+    INTCONbits.GIEH = 1; // enable high priority interrupts
+    //    INTCONbits.GIEL = 0; // enable low priority interrupts
 }

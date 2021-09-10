@@ -4,7 +4,7 @@
 
 #include "data.h"
 
-#define MAX_NB_TIMER    8       //количество таймеров в системе
+#define MAX_NB_TIMER    8       // number of timers in the system
 #define TIMEVAL_MAX 0xFFFF
 
 #define TIMER_FREE 0            

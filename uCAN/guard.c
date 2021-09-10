@@ -44,8 +44,8 @@ void ProducerHeartbeatAlarm(void) {
         uData.ProducerHeartBeatTimer = DelAlarm(uData.ProducerHeartBeatTimer);
     }
 };
-//смотреть нужны ли параметры  индекса и субиндекса функции callback()
-//const indextable * unused_indextable, UNS8 unused_bSubindex
+// see if the parameters of the index and subindex of the callback () function are needed
+// const indextable * unused_indextable, UNS8 unused_bSubindex
 
 
 //----------------------------------------------------------------------

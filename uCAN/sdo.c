@@ -14,7 +14,7 @@ void resetSDO(void) {
 
 UNS8 proceedSDO(void) {
 
-    //Есть ли в objDic хоть однп служба SDO 1200 + х ?
+    // Does objDic have at least one SDO 1200 + x service?
     /* Am-I a server ? */
     UNS8 nServer;
     UNS8 ptrIndex = firstIndex.SDO_SVR;
@@ -28,11 +28,11 @@ UNS8 proceedSDO(void) {
         while (ptrIndex <= ptrLast) {
             if (objdict[ptrIndex].bSubCount <= 1) {
                 //			MSG_ERR(0x1A61, "Subindex 1  not found at index ", 0x1200 + j);
-                //Не определено ни одного сервера SDO. Игнорируем пакет SDO.
+                // No SDO server defined. Ignore the SDO package.
                 return _BUSY;
             }
 
-            // Какие COBID для него заявлены ?        
+            // What COBIDs are reported for it?
             /* Looking for the cobid received. */
 
             tCobId = uMessage.extCOBID>>1;
@@ -44,8 +44,8 @@ UNS8 proceedSDO(void) {
                 //			whoami = SDO_SERVER;
                 //			MSG_WAR(0x3A62, "proceedSDO. I am server. index : ", 0x1200 + j);
                 /* Defining Server number = index minus 0x1200 where the cobid received is defined. */
-                nServer = j; //Это COBID сервера с номером J
-                tCobId = (UNS16)*pCobIdCtS;  //COBID answer for CLIENT
+                nServer = j; // This is the COBID of the server number J
+                tCobId = (UNS16)*pCobIdCtS;  // COBID answer for CLIENT
                 break;
             }
             j++;
@@ -76,7 +76,7 @@ UNS8 proceedSDO(void) {
     }
 
     /* Testing the command specifier */
-    /* Allowed : cs = 1 и 2 */
+    /* Allowed : cs = 1 and 2 */
     /* cs = other : 0, 3, 4, 5, 6 Not allowed -> abort. */
 
 

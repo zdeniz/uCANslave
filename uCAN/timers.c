@@ -18,31 +18,31 @@ static TIMER_HANDLE lastActTimer = 0xFF;
 UNS16 systemTick;
 //----------------------------------------------------------------------
 /**
- * Возвращает текущее значение счетчика миллисикунд (макс 32768мс)
- * @return значение счетчика в миллисекундах
+ * Returns the current value of the millisecond counter (max 32768ms)
+ * @return counter value in milliseconds
  */
 
 unsigned int getTime(void) {
     unsigned int time;
-    di(); //запрещаем прерывание
+    di(); // disable interrupt
     time = systemTick;
-    ei(); //Разрешаем прерывание
+    ei(); // Enable interrupt
     return time;
 }
 //----------------------------------------------------------------------
 
 /**
- * Проверяет истекло ли время до ожидаемого события
- * @param waitTime - время наступления события в миллисекундах (<32768ms)
- * @return 1 - событие наступило, 0 - событие не наступило
+ * Checks if the time elapsed before an expected event
+ * @param waitTime - time of event occurrence in milliseconds (<32768ms)
+ * @return 1 - the event has occurred, 0 - the event has not occurred
  */
 
 unsigned char expTime(unsigned int waitTime) {
     unsigned int currentTime;
-    di(); //запрещаем прерывание
+    di(); // disable interrupt
     currentTime = systemTick;
-    ei(); //Разрешаем прерывание
- //   waitTime++;       //????? зачем?????
+    ei(); // Enable interrupt
+ //   waitTime++;       // ????? why?????
     if (currentTime > waitTime) {
         if (currentTime - waitTime < 0x8000) {
             return 1;
@@ -105,12 +105,12 @@ void TimeDispatch(void) {
 
             if (expTime(ptr->value)) {
                 if (ptr->callback)
-                    (*ptr->callback)();     //вызываем callback 
+                    (*ptr->callback)();     // call callback
                 if (ptr->interval) /* if simply outdated */ {
                     ptr->value = currentTime + ptr->interval;
                 }else
                 {
-                    //как то завершить таймер
+                    // somehow end the timer
                 }
             }
         }

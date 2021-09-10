@@ -4,13 +4,13 @@
 #include "data.h"
 #include "leds.h"
 
-#define TICK_TIME 19       //1мс = 100 * 10 
-#define LAWICEL_TICK    1000    //1сек = 1мс * 1000
+#define TICK_TIME 19            // 1ms = 100 * 10
+#define LAWICEL_TICK    1000    // 1sec = 1ms * 1000
 #define GAP_TIME    2
 #define RCV_MASK 0x08
 #define HI_SEND 0xFE        //0xFE
 #define LO_SEND 0x80        //0x80
-#define LEN_PACK    2   //номера посылок в пакете 0 и 1, номер CRC =LEN_PACK= 2 
+#define LEN_PACK    2       // numbers of parcels in the packet 0 and 1, CRC number = LEN_PACK = 2
 #define MAX_REPIT    5
 #define CRC_MASK    0x31
 //#define DEV_ADDR    0x01
